@@ -1,0 +1,24 @@
+{
+  "name": "rest-basic",
+  "version": "1.0.0",
+  "description": "Basic rest api",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/accel33/rest-basic.git"
+  },
+  "author": "Accel Maeshiro",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/accel33/rest-basic/issues"
+  },
+  "homepage": "https://github.com/accel33/rest-basic#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "nodemon": "^1.19.1"
+  }
+}
