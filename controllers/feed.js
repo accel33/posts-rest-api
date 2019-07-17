@@ -3,21 +3,14 @@ const Post = require("../models/post");
 
 exports.getPosts = (req, res, next) => {
   //! The most important is to pass error code to the client on APIs.
-  res.status(200).json({
-    // todo... Success
-    posts: [
-      {
-        _id: "1234qwer",
-        title: "First Post",
-        content: "This is a post about a story",
-        imageUrl: "images/duca.jpg",
-        creator: {
-          name: "Accel"
-        },
-        createdAt: new Date()
-      }
-    ]
-  });
+  Post.find()
+    .then(result => {
+      res.status(200).json({
+        message: "Get data succesfully",
+        posts: result
+      });
+    })
+    .catch(err => console.log(err));
 };
 
 exports.createPost = (req, res, next) => {
