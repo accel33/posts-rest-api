@@ -1,3 +1,4 @@
+const path = require("path");
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
@@ -6,6 +7,8 @@ const app = express();
 
 //todo app.use(bodyParser.urlencoded({ extended: true })); // x-www-form-urlencoded <form>
 app.use(bodyParser.json()); // application/json. // * Able to extraxt from body parser
+app.use("/images", express.static(path.join(__dirname, "images")));
+
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
@@ -15,7 +18,14 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   next();
 });
+
 app.use("/feed", feedRoutes);
+app.use((error, req, res, next) => {
+  console.log(error);
+  const status = error.statusCode || 500;
+  const message = error.message;
+  res.status(status).json({ message: message });
+});
 // We could do routes in here using, app.use / app.post / app.put('/path') etc. But we will use the express router again
 mongoose
   .connect("mongodb://localhost/messages")
