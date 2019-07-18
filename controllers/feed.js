@@ -4,10 +4,10 @@ const Post = require("../models/post");
 exports.getPosts = (req, res, next) => {
   //! The most important is to pass error code to the client on APIs.
   Post.find()
-    .then(result => {
+    .then(posts => {
       res.status(200).json({
         message: "Get data succesfully",
-        posts: result
+        posts: posts
       });
     })
     .catch(err => console.log(err));
@@ -45,6 +45,29 @@ exports.createPost = (req, res, next) => {
       });
     })
     .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
+
+exports.getPost = (req, res, next) => {
+  const postId = req.params.postId;
+  Post.findById(postId)
+    .then(post => {
+      if (!post) {
+        const error = new Error("Could not find product");
+        error.statusCode = 404; //* Not found!
+        throw error; //todo When throw inside a then, the next catch block is reached
+      }
+      res.status(200).json({
+        message: "Product was found",
+        post: post
+      });
+    })
+    .catch(err => {
+      //! This catch server-side error
       if (!err.statusCode) {
         err.statusCode = 500;
       }
