@@ -1,12 +1,39 @@
 const path = require("path");
 const express = require("express");
 const mongoose = require("mongoose");
+const multer = require("multer");
 const bodyParser = require("body-parser");
 const feedRoutes = require("./routes/feed");
 const app = express();
 
+//! Storing images files with multer
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "images");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  }
+});
+
+//! Filter for multer file storage
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+
 //todo app.use(bodyParser.urlencoded({ extended: true })); // x-www-form-urlencoded <form>
 app.use(bodyParser.json()); // application/json. // * Able to extraxt from body parser
+app.use(
+  multer({ storage: fileStorage, fileFilter: fileFilter }).single("image")
+);
 app.use("/images", express.static(path.join(__dirname, "images")));
 
 app.use((req, res, next) => {

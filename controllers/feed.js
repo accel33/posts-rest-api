@@ -19,18 +19,20 @@ exports.createPost = (req, res, next) => {
     const error = new Error("Validation failed, entered data is incorrect");
     error.statusCode = 422;
     throw error;
-    // return res.status(422).json({
-    //   message: "Validation failed, entered data is incorrect",
-    //   errors: errors.array()
-    // });
   }
+  //! Checking for multer files
+  if (!req.file) {
+    const error = new Error("No image provided.");
+    error.statusCode = 422;
+    throw error;
+  }
+  const imageUrl = req.file.path; //! path variable generate by multer
   const title = req.body.title;
   const content = req.body.content;
-  // * Declare db field
   const post = new Post({
     title: title,
     content: content,
-    imageUrl: "images/duca.jpg",
+    imageUrl: imageUrl,
     creator: {
       name: "Accel"
     }
