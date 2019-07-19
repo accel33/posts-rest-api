@@ -4,12 +4,23 @@ const fs = require("fs");
 const path = require("path");
 
 exports.getPosts = (req, res, next) => {
-  //! The most important is to pass error code to the client on APIs.
+  const currentPage = req.query.page || 1;
+  const perPage = 2;
+  let totalItems;
   Post.find()
+    .countDocuments()
+    .then(count => {
+      totalItems = count;
+      return Post.find()
+        .skip((currentPage - 1) * perPage)
+        .limit(perPage);
+    })
     .then(posts => {
+      //! This is the data we send to the front-end
       res.status(200).json({
-        message: "Get data succesfully",
-        posts: posts
+        message: "Fetched posts succesfully.",
+        posts: posts,
+        totalItems: totalItems
       });
     })
     .catch(err => {
@@ -18,6 +29,7 @@ exports.getPosts = (req, res, next) => {
       }
       next(err);
     });
+  //! The most important is to pass error code to the client on APIs.
 };
 
 exports.createPost = (req, res, next) => {
