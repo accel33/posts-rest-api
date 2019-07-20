@@ -1,7 +1,8 @@
 const { validationResult } = require("express-validator");
-const Post = require("../models/post");
 const fs = require("fs");
 const path = require("path");
+const Post = require("../models/post");
+const User = require("../models/user");
 
 exports.getPosts = (req, res, next) => {
   const currentPage = req.query.page || 1;
@@ -49,22 +50,30 @@ exports.createPost = (req, res, next) => {
   const imagePosix = imageUrl.replace(/\\/g, "/");
   const title = req.body.title;
   const content = req.body.content;
+  let creator;
   const post = new Post({
     title: title,
     content: content,
     imageUrl: imagePosix, //path.resolve(imageUrl),
-    creator: { name: "Accel" }
+    creator: req.userId
   });
-
   post // * Send and store the data to mongodb
     .save()
     .then(result => {
+      //! I want to add this post, to the list of posts, for the given user
+      return User.findById(req.userId);
+    })
+    .then(user => {
+      creator = user;
+      user.posts.push(post);
+      return user.save();
+    })
+    .then(result => {
       res.status(201).json({
         message: "Post created successfully",
-        post: result //! Result is the post we save on the db
+        post: post, //! Result is the post we save on the db
+        creator: { _id: creator._id, name: creator.name }
       });
-      console.log(imagePosix);
-      console.log(result);
     })
     .catch(err => {
       if (!err.statusCode) {
