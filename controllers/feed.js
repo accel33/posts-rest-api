@@ -14,6 +14,8 @@ exports.getPosts = (req, res, next) => {
     .then(count => {
       totalItems = count;
       return Post.find()
+        .populate("creator")
+        .sort({ createdAt: -1 })
         .skip((currentPage - 1) * perPage)
         .limit(perPage);
     })
@@ -92,7 +94,10 @@ exports.createPost = (req, res, next) => {
       return user.save();
     })
     .then(result => {
-      io.getIO().emit("posts", { action: "create", post: post });
+      io.getIO().emit("posts", {
+        action: "create",
+        post: { ...post._doc, creator: { _id: req.userId, name: creator.name } }
+      });
       res.status(201).json({
         message: "Post created successfully",
         post: post, //! Result is the post we save on the db
@@ -151,6 +156,7 @@ exports.updatePost = (req, res, next) => {
     return error;
   }
   Post.findById(postId)
+    .populate("creator")
     .then(post => {
       if (!post) {
         const error = new Error("Could not find post.");
@@ -158,7 +164,7 @@ exports.updatePost = (req, res, next) => {
         throw error; //todo When throw inside a then, the next catch block is reached
       }
       //! Check if creatorID is equal to the Id of currently loggedin user
-      if (post.creator.toString() !== req.userId) {
+      if (post.creator._id.toString() !== req.userId) {
         const error = new Error("Not authorized!");
         error.statusCode = 403;
         throw error;
@@ -174,6 +180,7 @@ exports.updatePost = (req, res, next) => {
       // ! Overwriting the old post, but keeping the old ID
     })
     .then(result => {
+      io.getIO().emit("posts", { action: "update", post: result });
       res.status(200).json({ message: "Post updated!", post: result });
       console.log(result);
     })
