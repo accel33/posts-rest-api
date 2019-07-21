@@ -1,6 +1,7 @@
 const { validationResult } = require("express-validator");
 const fs = require("fs");
 const path = require("path");
+const io = require("../socket");
 const Post = require("../models/post");
 const User = require("../models/user");
 
@@ -33,27 +34,27 @@ exports.getPosts = (req, res, next) => {
   //! The most important is to pass error code to the client on APIs.
 };
 
-// exports.getPostsAsync = async (req, res, next) => {
-//   const currentPage = req.query.page || 1;
-//   const perPage = 2;
-//   let totalItems;
-//   try {
-//     const totalItems = await Post.find().countDocuments();
-//     const posts = await Post.find()
-//       .skip((currentPage - 1) * perPage)
-//       .limit(perPage);
-//     res.status(200).json({
-//       message: "Fetched posts succesfully.",
-//       posts: posts,
-//       totalItems: totalItems
-//     });
-//   } catch (err) {
-//     if (!err.statusCode) {
-//       err.statusCode = 500;
-//     }
-//     next(err);
-//   }
-// };
+exports.getPostsAsync = async (req, res, next) => {
+  const currentPage = req.query.page || 1;
+  const perPage = 2;
+  let totalItems;
+  try {
+    const totalItems = await Post.find().countDocuments();
+    const posts = await Post.find()
+      .skip((currentPage - 1) * perPage)
+      .limit(perPage);
+    res.status(200).json({
+      message: "Fetched posts succesfully.",
+      posts: posts,
+      totalItems: totalItems
+    });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
 
 exports.createPost = (req, res, next) => {
   const errors = validationResult(req);
@@ -91,6 +92,7 @@ exports.createPost = (req, res, next) => {
       return user.save();
     })
     .then(result => {
+      io.getIO().emit("posts", { action: "create", post: post });
       res.status(201).json({
         message: "Post created successfully",
         post: post, //! Result is the post we save on the db
