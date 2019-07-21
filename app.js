@@ -60,6 +60,10 @@ app.use((error, req, res, next) => {
 mongoose
   .connect("mongodb://localhost/messages")
   .then(result => {
-    app.listen(8080);
+    const server = app.listen(8080); //! This server use http
+    const io = require("./socket").init(server); //! Socket io object
+    io.on("connection", socket => {
+      console.log("Client Connected.");
+    });
   })
   .catch(err => console.log(err));
