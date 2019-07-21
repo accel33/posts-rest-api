@@ -211,6 +211,7 @@ exports.deletePost = (req, res, next) => {
       return Post.findByIdAndRemove(postId);
     })
     .then(result => {
+      io.getIO().emit("posts", { action: "delete", post: postId });
       return User.findById(req.userId);
     })
     .then(user => {
